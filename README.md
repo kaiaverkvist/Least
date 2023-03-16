@@ -42,6 +42,3 @@ public class UserResource : ModelResource<User, UserModel, UserChangeRequest, Us
 * Add `new Bootstrapper<ExampleDbContext>(app);` after calling the `builder.Build()` method.
 
 *Still unsure?* Look at the ExampleAPI project included in this repository.
-
-
-oy2gwdu46kspiipm2h4apuawqrofqhvelgkg3yyebhmp4a
