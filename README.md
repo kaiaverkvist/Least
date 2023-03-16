@@ -25,7 +25,7 @@ public class UserResource : ModelResource<User, UserModel, UserChangeRequest, Us
 {
     public UserResource()
     {
-        // This ensures 
+        // The same as doing query.Include("Books")
         ReadByIdOperation.SetIncludes("Books");
         ReadAllOperation.SetIncludes("Books");
     }
