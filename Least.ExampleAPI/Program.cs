@@ -1,8 +1,6 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Least;
 using Least.ExampleAPI;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

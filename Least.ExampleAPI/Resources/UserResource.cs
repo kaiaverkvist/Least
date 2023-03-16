@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Least.ExampleAPI.Domain;
+﻿using Least.ExampleAPI.Domain;
 using Least.ExampleAPI.Domain.Models;
 using Least.Resource;
 
