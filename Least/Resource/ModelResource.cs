@@ -45,6 +45,8 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
     public UpdateByIdOperation<TEntity> UpdateByIdOperation = new();
     public DeleteByIdOperation<TEntity> DeleteByIdOperation = new();
     public CreateOperation<TEntity, TCreateType> CreateOperation = new();
+
+    private Action<WebApplication> _onRegister = _ => {};
     
     /// <summary>
     /// No need to call this yourself in most cases.
@@ -139,5 +141,7 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
             await CreateOperation.Create(db, mapper.Map<TEntity>(input));
             return Results.Ok();
         });
+        
+        _onRegister?.Invoke(app);
     }
 }
