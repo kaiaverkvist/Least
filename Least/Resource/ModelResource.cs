@@ -144,4 +144,13 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
         
         _onRegister?.Invoke(app);
     }
+
+    /// <summary>
+    /// Sets the OnRegister callback, to add additional handlers.
+    /// </summary>
+    /// <param name="callback"></param>
+    public void OnRegister(Action<WebApplication> callback)
+    {
+        _onRegister = callback;
+    }
 }
