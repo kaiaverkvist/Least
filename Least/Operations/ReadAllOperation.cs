@@ -8,12 +8,15 @@ public class ReadAllOperation<TEntity>
 {
     public Func<HttpContext, bool> CanReadAll = (context) => true;
     private List<string> _includes = new();
+    private Func<DbContext, IQueryable<TEntity>>? _overrideGetAllFunction;
+
 
     internal IQueryable<TEntity> GetAll(DbContext db)
     {
+        if (_overrideGetAllFunction != null)
+            return _overrideGetAllFunction(db);
         
         var query = db.Set<TEntity>().AsQueryable();
-        
         _includes.ForEach(i => query = query.Include(i));
         
         return query.AsNoTracking();
@@ -30,5 +33,15 @@ public class ReadAllOperation<TEntity>
     public void SetIncludes(params string[] includes)
     {
         _includes = includes.ToList();
+    }
+    
+    /// <summary>
+    /// Used if the default function does not suffice. This allows consumers
+    /// to define their own queries.
+    /// </summary>
+    /// <param name="overrideFunc">Func for the override query</param>
+    public void SetOverride(Func<DbContext, IQueryable<TEntity>> overrideFunc)
+    {
+        _overrideGetAllFunction = overrideFunc;
     }
 }
