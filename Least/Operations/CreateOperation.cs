@@ -8,7 +8,7 @@ public class CreateOperation<TEntity, TCreateType>
     where TCreateType : class
 {
 
-    public Func<HttpContext, TCreateType, bool> CanCreate = (context, arg2) => true;
+    public Func<DbContext, HttpContext, TCreateType, bool> CanCreate = (db, context, createEntity) => true;
 
     internal async Task Create(DbContext db, TEntity entity)
     {
@@ -21,6 +21,6 @@ public class CreateOperation<TEntity, TCreateType>
     /// can get the entity in return.
     /// </summary>
     /// <param name="permission">Permission delegate.</param>
-    public void SetPermission( Func<HttpContext, TCreateType, bool> permission) =>
+    public void SetPermission(Func<DbContext, HttpContext, TCreateType, bool> permission) =>
         CanCreate = permission;
 }

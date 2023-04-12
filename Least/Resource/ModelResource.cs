@@ -65,11 +65,11 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
             IMapper mapper
         ) =>
         {
-            if (!ReadAllOperation.CanReadAll(ctx))
+            if (!ReadAllOperation.CanReadAll(db, ctx))
                 return Results.Unauthorized();
 
-            var results = ReadAllOperation.GetAll(db).ToList();
-            return Results.Ok(mapper.Map<List<TDomainType>>(results));
+            var results = await ReadAllOperation.GetAll(db, ctx);
+            return Results.Ok(mapper.Map<List<TDomainType>>(results.ToList()));
         });
         
         app.MapGet(name + "/{id}", async (
@@ -78,11 +78,11 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
             IMapper mapper,
             uint id) =>
         {
-            var result = await ReadByIdOperation.GetByIdAsync(db, id);
+            var result = await ReadByIdOperation.GetByIdAsync(db, ctx, id);
             if (result == null)
                 return Results.NotFound();
             
-            if (!ReadByIdOperation.CanReadById(ctx, result))
+            if (!ReadByIdOperation.CanReadById(db, ctx, result))
                 return Results.Unauthorized();
             
             return Results.Ok(mapper.Map<TDomainType>(result));
@@ -96,11 +96,11 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
             [FromBody] TWriteType input
         ) =>
         {
-            var entityAtId = await UpdateByIdOperation.GetByIdAsync(db, id);
+            var entityAtId = await UpdateByIdOperation.GetByIdAsync(db, ctx, id);
             if (entityAtId == null)
                 return Results.NotFound();
 
-            if (!UpdateByIdOperation.CanUpdateById(ctx, entityAtId))
+            if (!UpdateByIdOperation.CanUpdateById(db, ctx, entityAtId))
                 return Results.Unauthorized();
 
             // Overlay the properties from our TWriteType.
@@ -117,11 +117,11 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
             uint id
         ) =>
         {
-            var entityAtId = await DeleteByIdOperation.GetByIdAsync(db, id);
+            var entityAtId = await DeleteByIdOperation.GetByIdAsync(db, ctx, id);
             if (entityAtId == null)
                 return Results.NotFound();
 
-            if (!DeleteByIdOperation.CanDeleteById(ctx, entityAtId))
+            if (!DeleteByIdOperation.CanDeleteById(db, ctx, entityAtId))
                 return Results.Unauthorized();
 
             await DeleteByIdOperation.DeleteById(db, entityAtId);
@@ -135,7 +135,7 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
             [FromBody] TCreateType input
         ) =>
         {
-            if (!CreateOperation.CanCreate(ctx, input))
+            if (!CreateOperation.CanCreate(db, ctx, input))
                 return Results.Unauthorized();
 
             await CreateOperation.Create(db, mapper.Map<TEntity>(input));

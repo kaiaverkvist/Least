@@ -8,14 +8,14 @@ public class ReadByIdOperation<TEntity>
 {
     private List<string> _includes = new();
     
-    public Func<HttpContext, TEntity, bool> CanReadById = (context, arg2) => true;
-    private Func<DbContext, uint, Task<TEntity?>>? _overrideGetByIdFunc;
+    public Func<DbContext, HttpContext, TEntity, bool> CanReadById = (db, context, entity) => true;
+    private Func<DbContext, HttpContext, uint, Task<TEntity?>>? _overrideGetByIdFunc;
 
-    internal async Task<TEntity?> GetByIdAsync(DbContext db, uint id)
+    internal async Task<TEntity?> GetByIdAsync(DbContext db, HttpContext ctx, uint id)
     {
         // If we have an override set, use that instead.
         if (_overrideGetByIdFunc != null)
-            return await _overrideGetByIdFunc(db, id);
+            return await _overrideGetByIdFunc(db, ctx, id);
         
         // Finds the primary key property, so we can look for the entity.
         var keyProperty = db.Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey()?.Properties[0];
@@ -36,7 +36,7 @@ public class ReadByIdOperation<TEntity>
     /// can get the entity in return.
     /// </summary>
     /// <param name="permission">Permission delegate.</param>
-    public void SetPermission(Func<HttpContext, TEntity, bool> permission) =>
+    public void SetPermission(Func<DbContext, HttpContext, TEntity, bool> permission) =>
         CanReadById = permission;
 
     /// <summary>
@@ -54,7 +54,7 @@ public class ReadByIdOperation<TEntity>
     /// to define their own queries.
     /// </summary>
     /// <param name="overrideFunc">Func for the override query</param>
-    public void SetOverride(Func<DbContext, uint, Task<TEntity?>> overrideFunc)
+    public void SetOverride(Func<DbContext, HttpContext, uint, Task<TEntity?>> overrideFunc)
     {
         _overrideGetByIdFunc = overrideFunc;
     }

@@ -6,15 +6,15 @@ namespace Least.Operations;
 public class ReadAllOperation<TEntity>
     where TEntity : class
 {
-    public Func<HttpContext, bool> CanReadAll = (context) => true;
+    public Func<DbContext, HttpContext, bool> CanReadAll = (db, context) => true;
     private List<string> _includes = new();
-    private Func<DbContext, IQueryable<TEntity>>? _overrideGetAllFunction;
+    private Func<DbContext, HttpContext, Task<IQueryable<TEntity>>>? _overrideGetAllFunction;
 
 
-    internal IQueryable<TEntity> GetAll(DbContext db)
+    internal async Task<IQueryable<TEntity>> GetAll(DbContext db, HttpContext ctx)
     {
         if (_overrideGetAllFunction != null)
-            return _overrideGetAllFunction(db);
+            return await _overrideGetAllFunction(db, ctx);
         
         var query = db.Set<TEntity>().AsQueryable();
         _includes.ForEach(i => query = query.Include(i));
@@ -27,7 +27,7 @@ public class ReadAllOperation<TEntity>
     /// can get the entity in return.
     /// </summary>
     /// <param name="permission">Permission delegate.</param>
-    public void SetPermission(Func<HttpContext, bool> permission) =>
+    public void SetPermission(Func<DbContext, HttpContext, bool> permission) =>
         CanReadAll = permission;
 
     public void SetIncludes(params string[] includes)
@@ -40,7 +40,7 @@ public class ReadAllOperation<TEntity>
     /// to define their own queries.
     /// </summary>
     /// <param name="overrideFunc">Func for the override query</param>
-    public void SetOverride(Func<DbContext, IQueryable<TEntity>> overrideFunc)
+    public void SetOverride(Func<DbContext, HttpContext, Task<IQueryable<TEntity>>> overrideFunc)
     {
         _overrideGetAllFunction = overrideFunc;
     }
