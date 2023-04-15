@@ -7,7 +7,7 @@ public class DeleteByIdOperation<TEntity>
     where TEntity : class
 {
     
-    public Func<DbContext, HttpContext, TEntity, bool> CanDeleteById = (db, context, entity) => true;
+    internal Func<DbContext, HttpContext, TEntity, bool> CanDeleteById = (db, context, entity) => true;
     private Func<DbContext, HttpContext, uint, Task<TEntity?>>? _overrideGetByIdFunc;
 
     private List<string> _includes = new();

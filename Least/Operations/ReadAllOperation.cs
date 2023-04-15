@@ -6,7 +6,7 @@ namespace Least.Operations;
 public class ReadAllOperation<TEntity>
     where TEntity : class
 {
-    public Func<DbContext, HttpContext, bool> CanReadAll = (db, context) => true;
+    internal Func<DbContext, HttpContext, bool> CanReadAll = (db, context) => true;
     private List<string> _includes = new();
     private Func<DbContext, HttpContext, Task<IQueryable<TEntity>>>? _overrideGetAllFunction;
 

@@ -3,11 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Least.Operations;
 
-public class UpdateByIdOperation<TEntity>
+public class UpdateByIdOperation<TEntity, TWriteType>
     where TEntity : class
 {
     
-    public Func<DbContext, HttpContext, TEntity, bool> CanUpdateById = (db, context, arg2) => true;
+    internal Func<DbContext, HttpContext, TEntity, bool> CanUpdateById = (db, context, arg2) => true;
+    internal Func<TWriteType, TEntity>? TransformerFunc;
     private Func<DbContext, HttpContext, uint, Task<TEntity?>>? _overrideGetByIdFunc;
 
     private List<string> _includes = new();
@@ -63,5 +64,10 @@ public class UpdateByIdOperation<TEntity>
     public void SetOverride(Func<DbContext, HttpContext, uint, Task<TEntity?>> overrideFunc)
     {
         _overrideGetByIdFunc = overrideFunc;
+    }
+
+    public void SetTransformer(Func<TWriteType, TEntity> transformerFunc)
+    {
+        TransformerFunc = transformerFunc;
     }
 }

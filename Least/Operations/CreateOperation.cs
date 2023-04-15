@@ -8,7 +8,7 @@ public class CreateOperation<TEntity, TCreateType>
     where TCreateType : class
 {
 
-    public Func<DbContext, HttpContext, TCreateType, bool> CanCreate = (db, context, createEntity) => true;
+    internal Func<DbContext, HttpContext, TCreateType, bool> CanCreate = (db, context, createEntity) => true;
 
     internal async Task Create(DbContext db, TEntity entity)
     {

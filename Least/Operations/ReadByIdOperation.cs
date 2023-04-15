@@ -8,7 +8,7 @@ public class ReadByIdOperation<TEntity>
 {
     private List<string> _includes = new();
     
-    public Func<DbContext, HttpContext, TEntity, bool> CanReadById = (db, context, entity) => true;
+    internal Func<DbContext, HttpContext, TEntity, bool> CanReadById = (db, context, entity) => true;
     private Func<DbContext, HttpContext, uint, Task<TEntity?>>? _overrideGetByIdFunc;
 
     internal async Task<TEntity?> GetByIdAsync(DbContext db, HttpContext ctx, uint id)

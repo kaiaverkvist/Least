@@ -42,7 +42,7 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
 {
     public ReadByIdOperation<TEntity> ReadByIdOperation = new();
     public ReadAllOperation<TEntity> ReadAllOperation = new();
-    public UpdateByIdOperation<TEntity> UpdateByIdOperation = new();
+    public UpdateByIdOperation<TEntity, TWriteType> UpdateByIdOperation = new();
     public DeleteByIdOperation<TEntity> DeleteByIdOperation = new();
     public CreateOperation<TEntity, TCreateType> CreateOperation = new();
 
@@ -104,7 +104,14 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
                 return Results.Unauthorized();
 
             // Overlay the properties from our TWriteType.
-            mapper.Map<TWriteType, TEntity>(input, entityAtId);
+            if (UpdateByIdOperation.TransformerFunc != null)
+            {
+                entityAtId = UpdateByIdOperation.TransformerFunc(input);
+            }
+            else
+            {
+                mapper.Map(input, entityAtId);
+            }
             
             await UpdateByIdOperation.UpdateById(db, entityAtId);
             return Results.Ok();
