@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace Least.Operations;
@@ -8,7 +9,7 @@ public class UpdateByIdOperation<TEntity, TWriteType>
 {
     
     internal Func<DbContext, HttpContext, TEntity, bool> CanUpdateById = (db, context, arg2) => true;
-    internal Func<TWriteType, TEntity>? TransformerFunc;
+    internal Func<IMapper, TWriteType, TEntity, TEntity>? TransformerFunc;
     private Func<DbContext, HttpContext, uint, Task<TEntity?>>? _overrideGetByIdFunc;
 
     private List<string> _includes = new();
@@ -66,7 +67,7 @@ public class UpdateByIdOperation<TEntity, TWriteType>
         _overrideGetByIdFunc = overrideFunc;
     }
 
-    public void SetTransformer(Func<TWriteType, TEntity> transformerFunc)
+    public void SetTransformer(Func<IMapper, TWriteType, TEntity, TEntity> transformerFunc)
     {
         TransformerFunc = transformerFunc;
     }

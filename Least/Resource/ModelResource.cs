@@ -106,7 +106,7 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
             // Overlay the properties from our TWriteType.
             if (UpdateByIdOperation.TransformerFunc != null)
             {
-                entityAtId = UpdateByIdOperation.TransformerFunc(input);
+                entityAtId = UpdateByIdOperation.TransformerFunc(mapper, input, entityAtId);
             }
             else
             {
