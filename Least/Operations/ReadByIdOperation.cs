@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Least.Operations;
 
@@ -8,14 +9,16 @@ public class ReadByIdOperation<TEntity>
 {
     private List<string> _includes = new();
     
-    internal Func<DbContext, HttpContext, TEntity, bool> CanReadById = (db, context, entity) => true;
-    private Func<DbContext, HttpContext, uint, Task<TEntity?>>? _overrideGetByIdFunc;
+    internal Func<HttpContext, TEntity, bool> CanReadById = (_, _) => true;
+    private Func<HttpContext, uint, Task<TEntity?>>? _overrideGetByIdFunc;
 
-    internal async Task<TEntity?> GetByIdAsync(DbContext db, HttpContext ctx, uint id)
+    internal async Task<TEntity?> GetByIdAsync(HttpContext ctx, uint id)
     {
+        var db = ctx.RequestServices.GetRequiredService<DbContext>();
+        
         // If we have an override set, use that instead.
         if (_overrideGetByIdFunc != null)
-            return await _overrideGetByIdFunc(db, ctx, id);
+            return await _overrideGetByIdFunc(ctx, id);
         
         // Finds the primary key property, so we can look for the entity.
         var keyProperty = db.Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey()?.Properties[0];
@@ -36,7 +39,7 @@ public class ReadByIdOperation<TEntity>
     /// can get the entity in return.
     /// </summary>
     /// <param name="permission">Permission delegate.</param>
-    public void SetPermission(Func<DbContext, HttpContext, TEntity, bool> permission) =>
+    public void SetPermission(Func<HttpContext, TEntity, bool> permission) =>
         CanReadById = permission;
 
     /// <summary>
@@ -54,7 +57,7 @@ public class ReadByIdOperation<TEntity>
     /// to define their own queries.
     /// </summary>
     /// <param name="overrideFunc">Func for the override query</param>
-    public void SetOverride(Func<DbContext, HttpContext, uint, Task<TEntity?>> overrideFunc)
+    public void SetOverride(Func<HttpContext, uint, Task<TEntity?>> overrideFunc)
     {
         _overrideGetByIdFunc = overrideFunc;
     }

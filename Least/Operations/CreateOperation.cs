@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Least.Operations;
 
@@ -8,10 +9,12 @@ public class CreateOperation<TEntity, TCreateType>
     where TCreateType : class
 {
 
-    internal Func<DbContext, HttpContext, TCreateType, bool> CanCreate = (db, context, createEntity) => true;
+    internal Func<HttpContext, TCreateType, bool> CanCreate = (_, _) => true;
 
-    internal async Task Create(DbContext db, TEntity entity)
+    internal async Task Create(HttpContext ctx, TEntity entity)
     {
+        var db = ctx.RequestServices.GetRequiredService<DbContext>();
+
         db.Set<TEntity>().Add(entity);
         await db.SaveChangesAsync();
     }
@@ -21,6 +24,6 @@ public class CreateOperation<TEntity, TCreateType>
     /// can get the entity in return.
     /// </summary>
     /// <param name="permission">Permission delegate.</param>
-    public void SetPermission(Func<DbContext, HttpContext, TCreateType, bool> permission) =>
+    public void SetPermission(Func<HttpContext, TCreateType, bool> permission) =>
         CanCreate = permission;
 }

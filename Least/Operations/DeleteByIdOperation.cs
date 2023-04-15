@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Least.Operations;
 
@@ -7,21 +8,25 @@ public class DeleteByIdOperation<TEntity>
     where TEntity : class
 {
     
-    internal Func<DbContext, HttpContext, TEntity, bool> CanDeleteById = (db, context, entity) => true;
-    private Func<DbContext, HttpContext, uint, Task<TEntity?>>? _overrideGetByIdFunc;
+    internal Func<HttpContext, TEntity, bool> CanDeleteById = (_, _) => true;
+    private Func<HttpContext, uint, Task<TEntity?>>? _overrideGetByIdFunc;
 
     private List<string> _includes = new();
 
-    internal async Task DeleteById(DbContext db, TEntity entity)
+    internal async Task DeleteById(HttpContext ctx, TEntity entity)
     {
+        var db = ctx.RequestServices.GetRequiredService<DbContext>();
+
         db.Set<TEntity>().Remove(entity);
         await db.SaveChangesAsync();
     }
 
-    internal async Task<TEntity?> GetByIdAsync(DbContext db, HttpContext ctx, uint id)
+    internal async Task<TEntity?> GetByIdAsync(HttpContext ctx, uint id)
     {
+        var db = ctx.RequestServices.GetRequiredService<DbContext>();
+        
         if (_overrideGetByIdFunc != null)
-            return await _overrideGetByIdFunc(db, ctx, id);
+            return await _overrideGetByIdFunc(ctx, id);
         
         // Finds the primary key property, so we can look for the entity.
         var keyProperty = db.Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey()?.Properties[0];
@@ -42,7 +47,7 @@ public class DeleteByIdOperation<TEntity>
     /// can get the entity in return.
     /// </summary>
     /// <param name="permission">Permission delegate.</param>
-    public void SetPermission(Func<DbContext, HttpContext, TEntity, bool> permission) =>
+    public void SetPermission(Func<HttpContext, TEntity, bool> permission) =>
         CanDeleteById = permission;
 
     /// <summary>
@@ -60,7 +65,7 @@ public class DeleteByIdOperation<TEntity>
     /// to define their own queries.
     /// </summary>
     /// <param name="overrideFunc">Func for the override query</param>
-    public void SetOverride(Func<DbContext, HttpContext, uint, Task<TEntity?>> overrideFunc)
+    public void SetOverride(Func<HttpContext, uint, Task<TEntity?>> overrideFunc)
     {
         _overrideGetByIdFunc = overrideFunc;
     }

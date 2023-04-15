@@ -61,28 +61,26 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
         // Map Get
         app.MapGet(name + "/", async (
             HttpContext ctx,
-            DbContext db,
             IMapper mapper
         ) =>
         {
-            if (!ReadAllOperation.CanReadAll(db, ctx))
+            if (!ReadAllOperation.CanReadAll(ctx))
                 return Results.Unauthorized();
 
-            var results = await ReadAllOperation.GetAll(db, ctx);
+            var results = await ReadAllOperation.GetAll(ctx);
             return Results.Ok(mapper.Map<List<TDomainType>>(results.ToList()));
         });
         
         app.MapGet(name + "/{id}", async (
             HttpContext ctx,
-            DbContext db,
             IMapper mapper,
             uint id) =>
         {
-            var result = await ReadByIdOperation.GetByIdAsync(db, ctx, id);
+            var result = await ReadByIdOperation.GetByIdAsync(ctx, id);
             if (result == null)
                 return Results.NotFound();
             
-            if (!ReadByIdOperation.CanReadById(db, ctx, result))
+            if (!ReadByIdOperation.CanReadById(ctx, result))
                 return Results.Unauthorized();
             
             return Results.Ok(mapper.Map<TDomainType>(result));
@@ -90,62 +88,59 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
         
         app.MapPut(name + "/{id}", async (
             HttpContext ctx,
-            DbContext db,
             IMapper mapper,
             uint id,
             [FromBody] TWriteType input
         ) =>
         {
-            var entityAtId = await UpdateByIdOperation.GetByIdAsync(db, ctx, id);
+            var entityAtId = await UpdateByIdOperation.GetByIdAsync(ctx, id);
             if (entityAtId == null)
                 return Results.NotFound();
 
-            if (!UpdateByIdOperation.CanUpdateById(db, ctx, entityAtId))
+            if (!UpdateByIdOperation.CanUpdateById(ctx, entityAtId))
                 return Results.Unauthorized();
 
             // Overlay the properties from our TWriteType.
             if (UpdateByIdOperation.TransformerFunc != null)
             {
-                entityAtId = UpdateByIdOperation.TransformerFunc(ctx, db, input, entityAtId);
+                entityAtId = UpdateByIdOperation.TransformerFunc(ctx, input, entityAtId);
             }
             else
             {
                 mapper.Map(input, entityAtId);
             }
             
-            await UpdateByIdOperation.UpdateById(db, entityAtId);
+            await UpdateByIdOperation.UpdateById(ctx, entityAtId);
             return Results.Ok();
         });
         
                 
         app.MapDelete(name + "/{id}", async (
             HttpContext ctx,
-            DbContext db,
             uint id
         ) =>
         {
-            var entityAtId = await DeleteByIdOperation.GetByIdAsync(db, ctx, id);
+            var entityAtId = await DeleteByIdOperation.GetByIdAsync(ctx, id);
             if (entityAtId == null)
                 return Results.NotFound();
 
-            if (!DeleteByIdOperation.CanDeleteById(db, ctx, entityAtId))
+            if (!DeleteByIdOperation.CanDeleteById(ctx, entityAtId))
                 return Results.Unauthorized();
 
-            await DeleteByIdOperation.DeleteById(db, entityAtId);
+            await DeleteByIdOperation.DeleteById(ctx, entityAtId);
             return Results.Ok();
         });
 
         app.MapPost(name + "/", async (
             HttpContext ctx,
-            DbContext db,
             IMapper mapper,
             [FromBody] TCreateType input
         ) =>
         {
-            if (!CreateOperation.CanCreate(db, ctx, input))
+            if (!CreateOperation.CanCreate(ctx, input))
                 return Results.Unauthorized();
 
-            await CreateOperation.Create(db, mapper.Map<TEntity>(input));
+            await CreateOperation.Create(ctx, mapper.Map<TEntity>(input));
             return Results.Ok();
         });
         
