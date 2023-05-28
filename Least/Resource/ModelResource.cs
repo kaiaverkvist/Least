@@ -140,7 +140,18 @@ public class ModelResource<TEntity, TDomainType, TWriteType, TCreateType> : IRes
             if (!CreateOperation.CanCreate(ctx, input))
                 return Results.Unauthorized();
 
-            await CreateOperation.Create(ctx, mapper.Map<TEntity>(input));
+            TEntity entityModel;
+            // Overlay the properties from our TWriteType.
+            if (CreateOperation.TransformerFunc != null)
+            {
+                entityModel = CreateOperation.TransformerFunc(ctx, input);
+            }
+            else
+            {
+                entityModel = mapper.Map<TEntity>(input);
+            }
+            
+            await CreateOperation.Create(ctx, entityModel);
             return Results.Ok();
         });
         

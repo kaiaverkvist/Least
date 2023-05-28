@@ -10,6 +10,8 @@ public class CreateOperation<TEntity, TCreateType>
 {
 
     internal Func<HttpContext, TCreateType, bool> CanCreate = (_, _) => true;
+    internal Func<HttpContext, TCreateType, TEntity>? TransformerFunc;
+
 
     internal async Task Create(HttpContext ctx, TEntity entity)
     {
@@ -26,4 +28,9 @@ public class CreateOperation<TEntity, TCreateType>
     /// <param name="permission">Permission delegate.</param>
     public void SetPermission(Func<HttpContext, TCreateType, bool> permission) =>
         CanCreate = permission;
+    
+    public void SetTransformer(Func<HttpContext, TCreateType, TEntity> transformerFunc)
+    {
+        TransformerFunc = transformerFunc;
+    }
 }
